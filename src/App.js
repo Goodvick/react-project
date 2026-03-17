@@ -1,9 +1,11 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import './style/NullStyle.css';
 import './style/App.css';
 import PostList from "./conponents/PostList";
 import PostForm from "./conponents/PostForm";
-import MySelect from "./conponents/UI/select/MySelect";
+import PostFilter from "./conponents/PostFilter";
+import MyModal from "./conponents/UI/MyModal/MyModal";
+import MyButton from "./conponents/UI/button/MyButton";
 
 function App() {
     const [posts, setPosts] = useState([
@@ -11,37 +13,44 @@ function App() {
         { id: 2, title: 'vv', body: 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Asperiores non quasi perspiciatis? Ipsum omnis assumenda quos, placeat officia maiores dolore cum tempore. Aperiam nobis architecto consectetur labore, tempora perferendis necessitatibus.' },
         { id: 3, title: 'bb', body: '2Lorem ipsum dolor sit amet consectetur adipisicing elit. Asperiores non quasi perspiciatis? Ipsum omnis assumenda quos, placeat officia maiores dolore cum tempore. Aperiam nobis architecto consectetur labore, tempora perferendis necessitatibus.' },
     ])
-    const [selectedSort, setselectedSort] = useState('')
-    const sortPost = (sort) => {
-        setselectedSort(sort)
-        setPosts([...posts].sort((a, b) => a[sort].localeCompare(b[sort])))
-    }
+
     const createPost = (newPost) => {
         setPosts([...posts, newPost])
+        setModal(false)
     }
     const removePost = (post) => {
         setPosts(posts.filter(p => p.id !== post.id))
     }
 
+
+    const [filter, setFilter] = useState({ sort: '', query: '' })
+    const [modal, setModal] = useState(false)
+
+    const sortedPosts = useMemo(() => {
+        if (filter.sort) {
+            return [...posts].sort((a, b) => a[filter.sort].localeCompare(b[filter.sort]))
+        }
+        return posts;
+    }, [filter.sort, posts])
+    const sortedAndSearchedPosts = useMemo(() => {
+        return sortedPosts.filter(post => post.title.toLocaleLowerCase().includes(filter.query))
+    }, [filter.query, sortedPosts])
+
+
     return (
         <div className="App">
-            <PostForm create={createPost} />
+            <MyButton onClick={() => setModal(true)}>Создать пользователя</MyButton>
+
+            <MyModal visible={modal} setVisible={setModal}>
+                <PostForm create={createPost} />
+            </MyModal>
+
             <hr style={{ margin: "15px 15px" }} />
-            <div>
-                <MySelect
-                    value={selectedSort}
-                    onChange={sortPost}
-                    defaultValue="Сортировка"
-                    options={[
-                        { value: 'title', name: 'По заголовку' },
-                        { value: 'body', name: 'По описанию' },
-                    ]}
-                />
-            </div>
-            {posts.length !== 0
-                ? <PostList remove={removePost} posts={posts} title='Список постов № 1' />
-                : <h2 style={{ textAlign: 'center', marginTop: '50px' }}>Постов нет! Увы(</h2>
-            }
+
+            <PostFilter filter={filter} setFilter={setFilter} />
+
+            <PostList remove={removePost} posts={sortedAndSearchedPosts} title='Список постов № 1' />
+
         </div >
     );
 }
