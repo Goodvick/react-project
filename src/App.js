@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import './style/NullStyle.css';
 import './style/App.css';
 import PostList from "./conponents/PostList";
@@ -7,13 +7,28 @@ import PostFilter from "./conponents/PostFilter";
 import MyModal from "./conponents/UI/MyModal/MyModal";
 import MyButton from "./conponents/UI/button/MyButton";
 import { usePosts } from "./conponents/hooks/usePosts";
+import PostService from "./API/PostServise";
+
 
 function App() {
-    const [posts, setPosts] = useState([
-        { id: 1, title: 'aa', body: '1Lorem ipsum dolor sit amet consectetur adipisicing elit. Asperiores non quasi perspiciatis? Ipsum omnis assumenda quos, placeat officia maiores dolore cum tempore. Aperiam nobis architecto consectetur labore, tempora perferendis necessitatibus.' },
-        { id: 2, title: 'vv', body: 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Asperiores non quasi perspiciatis? Ipsum omnis assumenda quos, placeat officia maiores dolore cum tempore. Aperiam nobis architecto consectetur labore, tempora perferendis necessitatibus.' },
-        { id: 3, title: 'bb', body: '2Lorem ipsum dolor sit amet consectetur adipisicing elit. Asperiores non quasi perspiciatis? Ipsum omnis assumenda quos, placeat officia maiores dolore cum tempore. Aperiam nobis architecto consectetur labore, tempora perferendis necessitatibus.' },
-    ])
+    const [posts, setPosts] = useState([])
+    const [filter, setFilter] = useState({ sort: '', query: '' })
+    const [modal, setModal] = useState(false)
+    const sortedAndSearchedPosts = usePosts(posts, filter.sort, filter.query)
+    const [isPostsLoading, setIsPostsLoading] = useState(false)
+
+    useEffect(() => {
+        fetchPosts()
+    }, [])
+
+    async function fetchPosts() {
+        setIsPostsLoading(true)
+        const posts = await PostService.getAll()
+        setPosts(posts)
+        setIsPostsLoading(false)
+    }
+
+
     const createPost = (newPost) => {
         setPosts([...posts, newPost])
         setModal(false)
@@ -21,9 +36,7 @@ function App() {
     const removePost = (post) => {
         setPosts(posts.filter(p => p.id !== post.id))
     }
-    const [filter, setFilter] = useState({ sort: '', query: '' })
-    const [modal, setModal] = useState(false)
-    const sortedAndSearchedPosts = usePosts(posts, filter.sort, filter.query)
+
 
 
     return (
@@ -37,9 +50,10 @@ function App() {
             <hr style={{ margin: "15px 15px" }} />
 
             <PostFilter filter={filter} setFilter={setFilter} />
-
-            <PostList remove={removePost} posts={sortedAndSearchedPosts} title='Список постов № 1' />
-
+            {isPostsLoading
+                ? <p>Загрузка...</p>
+                : <PostList remove={removePost} posts={sortedAndSearchedPosts} title='Список постов № 1' />
+            }
         </div >
     );
 }
