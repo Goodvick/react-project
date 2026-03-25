@@ -1,5 +1,6 @@
 import React from "react";
 import PostItem from "./PostItem";
+import { motion } from "motion/react";
 
 const PostList = ({ posts, title, remove }) => {
   if (!posts.length) {
@@ -11,7 +12,7 @@ const PostList = ({ posts, title, remove }) => {
   }
 
   return (
-    <div>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
       <h1 style={{ textAlign: "center" }}>{title}</h1>
       {posts.map((post, index) => (
         <PostItem
@@ -21,7 +22,7 @@ const PostList = ({ posts, title, remove }) => {
           key={post.id}
         />
       ))}
-    </div>
+    </motion.div>
   );
 };
 export default PostList;
