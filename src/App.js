@@ -8,6 +8,7 @@ import MyModal from "./conponents/UI/MyModal/MyModal";
 import MyButton from "./conponents/UI/button/MyButton";
 import { usePosts } from "./conponents/hooks/usePosts";
 import PostService from "./API/PostServise";
+import Loader from "./conponents/UI/Loader/Loader";
 
 
 function App() {
@@ -51,7 +52,7 @@ function App() {
 
             <PostFilter filter={filter} setFilter={setFilter} />
             {isPostsLoading
-                ? <p>Загрузка...</p>
+                ? <Loader />
                 : <PostList remove={removePost} posts={sortedAndSearchedPosts} title='Список постов № 1' />
             }
         </div >
