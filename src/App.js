@@ -10,21 +10,30 @@ import { usePosts } from "./conponents/hooks/usePosts";
 import PostService from "./API/PostServise";
 import Loader from "./conponents/UI/Loader/Loader";
 import { useFetching } from "./conponents/hooks/useFetching";
+import { getPageCount, getPagesArray } from "./conponents/utils/pages";
 
 
 function App() {
     const [posts, setPosts] = useState([])
     const [filter, setFilter] = useState({ sort: '', query: '' })
     const [modal, setModal] = useState(false)
+    const [totalPages, setTotalPages] = useState(0)
+    const [limit, setLimit] = useState(10)
+    const [page, setPage] = useState(1)
     const sortedAndSearchedPosts = usePosts(posts, filter.sort, filter.query)
+
+    let pagesArray = getPagesArray(totalPages)
+    console.log(pagesArray)
     const [fetchPosts, isPostsLoading, postError] = useFetching(async () => {
-        const posts = await PostService.getAll()
-        setPosts(posts)
+        const response = await PostService.getAll(limit, page)
+        setPosts(response.data)
+        const totalCount = response.headers['x-total-count']
+        setTotalPages(getPageCount(totalCount, limit))
     })
 
     useEffect(() => {
         fetchPosts()
-    }, [])
+    }, [page])
 
     const createPost = (newPost) => {
         setPosts([...posts, newPost])
@@ -34,7 +43,9 @@ function App() {
         setPosts(posts.filter(p => p.id !== post.id))
     }
 
-
+    const changePage = (page) => {
+        setPage(page)
+    }
 
     return (
         <div className="App">
@@ -51,6 +62,17 @@ function App() {
                 ? <Loader />
                 : <PostList remove={removePost} posts={sortedAndSearchedPosts} title='Список постов № 1' />
             }
+            <div className="pages">
+                {pagesArray.map(p =>
+                    <button
+                        onClick={() => changePage(p)}
+                        key={p}
+                        className={page === p
+                            ? "pages__button pages__button_current"
+                            : "pages__button"}
+                    >{p}</button>
+                )}
+            </div>
         </div >
     );
 }
